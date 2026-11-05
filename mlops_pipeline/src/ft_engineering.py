@@ -6,7 +6,7 @@ Recoge las decisiones de `comprension_eda.ipynb` y deja los datos listos para mo
 2. Generación de atributos derivados (razones, indicadores, variables de fecha, tramos de edad).
 3. División train/test (temporal por defecto, o aleatoria estratificada).
 4. `ColumnTransformer` con un pipeline por tipo de variable:
-   - numéricas: `SimpleImputer` (mediana + indicador de nulo)
+   - numéricas: `SimpleImputer` (mediana + indicador de nulo) + log + `StandardScaler`
    - categóricas nominales: `SimpleImputer` + `OneHotEncoder`
    - categóricas ordinales: `SimpleImputer` + `OrdinalEncoder`
 
@@ -29,7 +29,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, OrdinalEncoder, StandardScaler
 
 # ---------------------------------------------------------------------------
 # Constantes (las mismas de Cargar_datos.ipynb y comprension_eda.ipynb)
@@ -65,14 +65,16 @@ RANGO_DURO = {
 }
 
 # saldo_mora_codeudor: casi constante; saldo_principal: redundante con saldo_total (EDA, sección 3)
-COLUMNAS_ELIMINAR = ["saldo_mora_codeudor", "saldo_principal"]
+# puntaje: fuga de información. Separa el objetivo sin error (puntaje >= 63 -> paga, AUC 1.0 en
+# los 10 763 créditos), así que se calcula con el resultado de pago y no existe al originar.
+COLUMNAS_ELIMINAR = ["saldo_mora_codeudor", "saldo_principal", "puntaje"]
 
 # ---------------------------------------------------------------------------
 # Variables que entran al modelo, agrupadas por el tratamiento que reciben
 # ---------------------------------------------------------------------------
 NUMERICAS = [
     "capital_prestado", "plazo_meses", "edad_cliente", "salario_cliente", "total_otros_prestamos",
-    "cuota_pactada", "puntaje", "puntaje_datacredito", "cant_creditosvigentes", "huella_consulta",
+    "cuota_pactada", "puntaje_datacredito", "cant_creditosvigentes", "huella_consulta",
     "saldo_mora", "saldo_total", "creditos_sectorFinanciero", "creditos_sectorCooperativo",
     "creditos_sectorReal", "promedio_ingresos_datacredito",
     # derivadas
@@ -83,10 +85,6 @@ NUMERICAS = [
 CATEGORICAS = ["tipo_credito", "tipo_laboral"]
 ORDINALES = ["tendencia_ingresos", "grupo_edad"]
 ORDEN_ORDINALES = [CAT_TENDENCIA, CAT_GRUPO_EDAD]   # mismo orden que ORDINALES
-
-# `puntaje` separa casi perfectamente el objetivo: posible fuga de información (EDA, sección 11).
-# Se deja como opción para comparar el modelo con y sin ella.
-VARIABLE_ALERTA_FUGA = "puntaje"
 
 
 # ---------------------------------------------------------------------------
@@ -219,11 +217,20 @@ def dividir_train_test(
 # ---------------------------------------------------------------------------
 # 4. ColumnTransformer
 # ---------------------------------------------------------------------------
+def log_con_signo(X):
+    """log(1 + |x|) conservando el signo: comprime colas largas (salarios, saldos) sin alterar el orden."""
+    return np.sign(X) * np.log1p(np.abs(X))
+
+
 def construir_preprocesador(numericas: list[str], categoricas: list[str], ordinales: list[str]) -> ColumnTransformer:
     """Pipeline de preprocesamiento por tipo de variable (se ajusta solo con train)."""
     pipe_numericas = Pipeline([
         # Mediana: robusta a las colas largas. El indicador conserva la señal de los nulos informativos.
         ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+        # Log + escalado: necesarios para modelos lineales y de distancia (montos de miles a millones).
+        # A los árboles no les afecta porque el orden de los valores se mantiene.
+        ("log", FunctionTransformer(log_con_signo, feature_names_out="one-to-one")),
+        ("escalado", StandardScaler()),
     ])
 
     pipe_categoricas = Pipeline([
@@ -256,18 +263,11 @@ def preparar_datos(
     ruta: Path | str | None = None,
     test_size: float = 0.2,
     temporal: bool = True,
-    incluir_puntaje: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, ColumnTransformer]:
     """Carga, limpia, genera atributos, divide y devuelve el preprocesador sin ajustar."""
     datos = crear_atributos(limpiar(cargar_datos(ruta)))
     X_train, X_test, y_train, y_test = dividir_train_test(datos, test_size=test_size, temporal=temporal)
-
-    if not incluir_puntaje:
-        X_train = X_train.drop(columns=VARIABLE_ALERTA_FUGA)
-        X_test = X_test.drop(columns=VARIABLE_ALERTA_FUGA)
-
-    numericas = [c for c in NUMERICAS if c in X_train.columns]
-    preprocesador = construir_preprocesador(numericas, CATEGORICAS, ORDINALES)
+    preprocesador = construir_preprocesador(NUMERICAS, CATEGORICAS, ORDINALES)
     return X_train, X_test, y_train, y_test, preprocesador
 
 

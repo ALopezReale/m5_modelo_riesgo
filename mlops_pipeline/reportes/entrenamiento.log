@@ -1,0 +1,190 @@
+﻿python.exe : 
+En línea: 1 Carácter: 420
++ ... eline\src"; & ..\..\.venv\Scripts\python.exe -W ignore model_training ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Processing:   0%|          | 0/67 [00:00<?, ?it/s]
+Processing:   7%|▋         | 5/67 [00:04<00:58,  1.07it/s]
+Processing:  13%|█▎        | 9/67 [00:07<00:49,  1.17it/s]
+Processing:  19%|█▉        | 13/67 [00:07<00:27,  1.99it/s]
+Processing:  25%|██▌       | 17/67 [00:08<00:16,  2.96it/s]
+Processing:  31%|███▏      | 21/67 [00:09<00:13,  3.32it/s]
+Processing:  37%|███▋      | 25/67 [00:09<00:09,  4.65it/s]
+Processing:  43%|████▎     | 29/67 [00:10<00:07,  4.90it/s]
+Processing:  49%|████▉     | 33/67 [00:12<00:12,  2.74it/s]
+Processing:  55%|█████▌    | 37/67 [00:13<00:07,  3.80it/s]
+Processing:  61%|██████    | 41/67 [00:13<00:05,  4.47it/s]
+Processing:  67%|██████▋   | 45/67 [00:14<00:04,  5.27it/s]
+Processing:  73%|███████▎  | 49/67 [00:14<00:03,  5.39it/s]
+Processing:  79%|███████▉  | 53/67 [00:14<00:01,  7.10it/s]
+Processing:  85%|████████▌ | 57/67 [00:15<00:01,  6.83it/s]
+Processing:  91%|█████████ | 61/67 [00:16<00:00,  6.40it/s]
+Processing:  97%|█████████▋| 65/67 [00:16<00:00,  6.98it/s]
+Processing: 100%|██████████| 67/67 [00:17<00:00,  6.71it/s]
+                              Model  Accuracy     AUC  Recall   Prec.      F1  \
+13        Extreme Gradient Boosting    0.9508  0.7050  1.0000  0.9508  0.9748   
+8      Linear Discriminant Analysis    0.9473  0.6976  0.9947  0.9520  0.9729   
+14  Light Gradient Boosting Machine    0.9508  0.6974  1.0000  0.9508  0.9748   
+0               Logistic Regression    0.9504  0.6954  0.9990  0.9513  0.9745   
+4          Random Forest Classifier    0.9514  0.6948  0.9999  0.9514  0.9750   
+7      Gradient Boosting Classifier    0.9483  0.6930  0.9952  0.9526  0.9734   
+2                       Naive Bayes    0.5698  0.6532  0.5743  0.8809  0.6401   
+10        Extreme Gradient Boosting    0.9486  0.6515  0.9962  0.9520  0.9736   
+11  Light Gradient Boosting Machine    0.9511  0.6510  0.9987  0.9522  0.9749   
+9            Extra Trees Classifier    0.9507  0.6503  0.9988  0.9517  0.9747   
+6              Ada Boost Classifier    0.9489  0.6469  0.9968  0.9517  0.9737   
+1            K Neighbors Classifier    0.9500  0.5688  0.9975  0.9521  0.9743   
+3          Decision Tree Classifier    0.8931  0.5432  0.9313  0.9550  0.9430   
+12                 Dummy Classifier    0.9507  0.5000  1.0000  0.9507  0.9747   
+5   Quadratic Discriminant Analysis    0.4146  0.4769  0.4001  0.9603  0.4612   
+
+     Kappa     MCC  Especificidad  F1 no paga  TT (Sec)  
+13  0.0069  0.0265         0.0036      0.0071     0.114  
+8   0.0479  0.1052         0.0336      0.0581     0.018  
+14  0.0069  0.0265         0.0036      0.0071     0.130  
+0   0.0204  0.0645         0.0123      0.0234     0.932  
+4   0.0301  0.1011         0.0164      0.0319     0.174  
+7   0.0678  0.1100         0.0448      0.0788     0.556  
+2   0.0592  0.0529         0.5630      0.1272     0.016  
+10  0.0446  0.0755         0.0302      0.0531     0.078  
+11  0.0585  0.1176         0.0349      0.0633     0.128  
+9   0.0349  0.0892         0.0206      0.0389     0.096  
+6   0.0392  0.0804         0.0256      0.0466     0.130  
+1   0.0550  0.1086         0.0335      0.0621     0.614  
+3   0.0698  0.0716         0.1550      0.1243     0.044  
+12  0.0000  0.0000         0.0000      0.0000     0.012  
+5   0.0016  0.0011         0.5922      0.0846     0.022  
+Comparación en validación cruzada temporal (train):
+                              Model    AUC  F1 no paga  Especificidad  Prec.  Recall
+13        Extreme Gradient Boosting  0.705       0.007          0.004  0.951   1.000
+8      Linear Discriminant Analysis  0.698       0.058          0.034  0.952   0.995
+14  Light Gradient Boosting Machine  0.697       0.007          0.004  0.951   1.000
+0               Logistic Regression  0.695       0.023          0.012  0.951   0.999
+4          Random Forest Classifier  0.695       0.032          0.016  0.951   1.000
+7      Gradient Boosting Classifier  0.693       0.079          0.045  0.953   0.995
+2                       Naive Bayes  0.653       0.127          0.563  0.881   0.574
+10        Extreme Gradient Boosting  0.652       0.053          0.030  0.952   0.996
+11  Light Gradient Boosting Machine  0.651       0.063          0.035  0.952   0.999
+9            Extra Trees Classifier  0.650       0.039          0.021  0.952   0.999
+6              Ada Boost Classifier  0.647       0.047          0.026  0.952   0.997
+1            K Neighbors Classifier  0.569       0.062          0.034  0.952   0.998
+3          Decision Tree Classifier  0.543       0.124          0.155  0.955   0.931
+12                 Dummy Classifier  0.500       0.000          0.000  0.951   1.000
+5   Quadratic Discriminant Analysis  0.477       0.085          0.592  0.960   0.400
+
+Optimizando XGBClassifier...
+                                                           
+
+Processing:   0%|          | 0/7 [00:00<?, ?it/s]
+Processing:  43%|████▎     | 3/7 [00:09<00:13,  3.26s/it]
+Processing:  86%|████████▌ | 6/7 [00:10<00:01,  1.43s/it]
+Processing: 100%|██████████| 7/7 [00:10<00:00,  1.15s/it]
+Fitting 5 folds for each of 30 candidates, totalling 150 fits
+      Accuracy     AUC  Recall   Prec.  ...  Kappa  MCC  Especificidad  F1 no paga
+Fold                                    ...                                       
+0       0.9575  0.7078     1.0  0.9575  ...    0.0  0.0            0.0         0.0
+1       0.9415  0.6739     1.0  0.9415  ...    0.0  0.0            0.0         0.0
+2       0.9463  0.6872     1.0  0.9463  ...    0.0  0.0            0.0         0.0
+3       0.9463  0.7157     1.0  0.9463  ...    0.0  0.0            0.0         0.0
+4       0.9617  0.7479     1.0  0.9617  ...    0.0  0.0            0.0         0.0
+Mean    0.9507  0.7065     1.0  0.9507  ...    0.0  0.0            0.0         0.0
+Std     0.0076  0.0254     0.0  0.0076  ...    0.0  0.0            0.0         0.0
+
+[7 rows x 9 columns]
+AUC cv: base 0.7050, ajustado 0.7065 -> se conserva el modelo base
+
+Optimizando LinearDiscriminantAnalysis...
+                                                         
+
+Processing:   0%|          | 0/7 [00:00<?, ?it/s]
+Processing:  43%|████▎     | 3/7 [00:00<00:01,  3.51it/s]
+Processing:  86%|████████▌ | 6/7 [00:00<00:00,  7.15it/s]
+Fitting 5 folds for each of 30 candidates, totalling 150 fits
+Original model was better than the tuned model, hence it will be returned. NOTE: The display metrics are for the tuned model (not the original one).
+      Accuracy     AUC  Recall  ...     MCC  Especificidad  F1 no paga
+Fold                            ...                                   
+0       0.9463  0.6682  0.9869  ...  0.0339         0.0328      0.0494
+1       0.9387  0.6805  0.9948  ...  0.0862         0.0357      0.0638
+2       0.9470  0.7284  0.9993  ...  0.1245         0.0260      0.0500
+3       0.9484  0.6923  1.0000  ...  0.1922         0.0390      0.0750
+4       0.9624  0.7185  1.0000  ...  0.1323         0.0182      0.0357
+Mean    0.9486  0.6976  0.9962  ...  0.1138         0.0303      0.0548
+Std     0.0077  0.0227  0.0050  ...  0.0525         0.0074      0.0135
+
+[7 rows x 9 columns]
+AUC cv: base 0.6976, ajustado 0.6976 -> se conserva el modelo base
+
+Optimizando LGBMClassifier...
+                                                         
+
+Processing:   0%|          | 0/7 [00:00<?, ?it/s]
+Processing:  43%|████▎     | 3/7 [00:11<00:15,  3.98s/it]
+Processing:  86%|████████▌ | 6/7 [00:12<00:01,  1.79s/it]
+Processing: 100%|██████████| 7/7 [00:12<00:00,  1.46s/it]
+Fitting 5 folds for each of 30 candidates, totalling 150 fits
+      Accuracy     AUC  Recall   Prec.  ...  Kappa  MCC  Especificidad  F1 no paga
+Fold                                    ...                                       
+0       0.9575  0.6683     1.0  0.9575  ...    0.0  0.0            0.0         0.0
+1       0.9415  0.6724     1.0  0.9415  ...    0.0  0.0            0.0         0.0
+2       0.9463  0.6945     1.0  0.9463  ...    0.0  0.0            0.0         0.0
+3       0.9463  0.7122     1.0  0.9463  ...    0.0  0.0            0.0         0.0
+4       0.9617  0.7612     1.0  0.9617  ...    0.0  0.0            0.0         0.0
+Mean    0.9507  0.7017     1.0  0.9507  ...    0.0  0.0            0.0         0.0
+Std     0.0076  0.0337     0.0  0.0076  ...    0.0  0.0            0.0         0.0
+
+[7 rows x 9 columns]
+AUC cv: base 0.6974, ajustado 0.7017 -> se conserva el modelo base
+
+Resumen en test (clase positiva = paga a tiempo):
+                            modelo  umbral   AUC  F1 no paga  Especificidad  Precision  Recall    F1  Accuracy    KS  VP (paga, aprobado)  FP (no paga, aprobado)  FN (paga, rechazado)  VN (no paga, rechazado)  AUC cv
+              XGBClassifier (base)   0.877 0.671       0.119          0.275      0.974   0.889 0.930     0.869 0.296                 1853                      50                   231                       19     NaN
+             XGBClassifier (final)   0.877 0.671       0.119          0.275      0.974   0.889 0.930     0.869 0.296                 1853                      50                   231                       19   0.705
+ LinearDiscriminantAnalysis (base)   0.894 0.635       0.092          0.290      0.973   0.834 0.898     0.817 0.228                 1738                      49                   346                       20     NaN
+LinearDiscriminantAnalysis (final)   0.894 0.635       0.092          0.290      0.973   0.834 0.898     0.817 0.228                 1738                      49                   346                       20   0.698
+             LGBMClassifier (base)   0.888 0.671       0.119          0.275      0.974   0.890 0.930     0.870 0.312                 1854                      50                   230                       19     NaN
+            LGBMClassifier (final)   0.888 0.671       0.119          0.275      0.974   0.890 0.930     0.870 0.312                 1854                      50                   230                       19   0.697
+
+Mejor modelo: XGBClassifier | AUC cv 0.705 | umbral 0.877
+               modelo  umbral   AUC  F1 no paga  Especificidad  Precision  Recall   F1  Accuracy    KS  VP (paga, aprobado)  FP (no paga, aprobado)  FN (paga, rechazado)  VN (no paga, rechazado)  AUC cv
+XGBClassifier (final)   0.877 0.671       0.119          0.275      0.974   0.889 0.93     0.869 0.296                 1853                      50                   231                       19   0.705
+[LightGBM] [Info] Number of positive: 2721, number of negative: 149
+[LightGBM] [Info] Auto-choosing row-wise multi-threading, the overhead of testing was 0.001378 seconds.
+You can set `force_row_wise=true` to remove the overhead.
+And if memory is not enough, you can set `force_col_wise=true`.
+[LightGBM] [Info] Total Bins 3012
+[LightGBM] [Info] Number of data points in the train set: 2870, number of used features: 40
+[LightGBM] [Info] [binary:BoostFromScore]: pavg=0.948084 -> initscore=2.904808
+[LightGBM] [Info] Start training from score 2.904808
+[LightGBM] [Info] Number of positive: 5430, number of negative: 310
+[LightGBM] [Info] Auto-choosing row-wise multi-threading, the overhead of testing was 0.002834 seconds.
+You can set `force_row_wise=true` to remove the overhead.
+And if memory is not enough, you can set `force_col_wise=true`.
+[LightGBM] [Info] Total Bins 3260
+[LightGBM] [Info] Number of data points in the train set: 5740, number of used features: 49
+[LightGBM] [Info] [binary:BoostFromScore]: pavg=0.945993 -> initscore=2.863122
+[LightGBM] [Info] Start training from score 2.863122
+[LightGBM] [Info] Number of positive: 1347, number of negative: 88
+[LightGBM] [Info] Auto-choosing row-wise multi-threading, the overhead of testing was 0.001207 seconds.
+You can set `force_row_wise=true` to remove the overhead.
+And if memory is not enough, you can set `force_col_wise=true`.
+[LightGBM] [Info] Total Bins 2867
+[LightGBM] [Info] Number of data points in the train set: 1435, number of used features: 37
+[LightGBM] [Info] [binary:BoostFromScore]: pavg=0.938676 -> initscore=2.728298
+[LightGBM] [Info] Start training from score 2.728298
+[LightGBM] [Info] Number of positive: 6788, number of negative: 387
+[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001985 seconds.
+You can set `force_col_wise=true` to remove the overhead.
+[LightGBM] [Info] Total Bins 3371
+[LightGBM] [Info] Number of data points in the train set: 7175, number of used features: 49
+[LightGBM] [Info] [binary:BoostFromScore]: pavg=0.946063 -> initscore=2.864487
+[LightGBM] [Info] Start training from score 2.864487
+[LightGBM] [Info] Number of positive: 4072, number of negative: 233
+[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.006225 seconds.
+You can set `force_col_wise=true` to remove the overhead.
+[LightGBM] [Info] Total Bins 3111
+[LightGBM] [Info] Number of data points in the train set: 4305, number of used features: 49
+[LightGBM] [Info] [binary:BoostFromScore]: pavg=0.945877 -> initscore=2.860851
+[LightGBM] [Info] Start training from score 2.860851
+                                                         
