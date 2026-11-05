@@ -11,6 +11,8 @@ ipykernel>=6.29
 ipywidgets
 scikit-learn
 xgboost
+lightgbm==4.5.0   # 4.7.0 falló con access violation en este entorno y PyCaret lo omite sin avisar
+pycaret==3.3.2
 pydantic
 fastapi
 uvicorn[standard]
