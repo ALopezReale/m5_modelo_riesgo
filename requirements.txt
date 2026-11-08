@@ -16,3 +16,7 @@ pycaret==3.3.2
 pydantic
 fastapi
 uvicorn[standard]
+scipy
+plotly
+streamlit==1.67.0
+pyarrow==19.0.1   # las versiones nuevas exigen NumPy 2 y PyCaret fija NumPy 1.26: Streamlit fallaría al mostrar tablas

@@ -55,6 +55,34 @@ Más gráficos (comparación de métricas, curvas ROC, variables más importante
 - **Todavía no hay un modelo listo para decidir solo** si se aprueba un crédito. La información disponible solo permite distinguir de forma modesta a quienes pagarán.
 - Por ahora puede servir como **apoyo**: una alerta para que un analista revise con más cuidado las solicitudes de mayor riesgo.
 
+## Monitoreo del modelo
+
+Un modelo se entrena con los clientes de ayer y decide sobre los de hoy. El monitoreo compara cada período con los 8 610 créditos de entrenamiento para avisar si la población cambió, sin esperar a saber quién pagó.
+
+**Cómo se mide.** Cada variable se compara con cuatro métricas: PSI y Jensen-Shannon miden cuánto cambió; Kolmogorov-Smirnov (numéricas) y chi-cuadrado (categóricas) indican si la diferencia es significativa. El semáforo usa solo el PSI (verde menor a 0.10, amarillo hasta 0.25, rojo desde 0.25), porque con muchos datos las pruebas estadísticas marcan incluso diferencias mínimas.
+
+**Cuándo se alerta.** Se sugiere evaluar un reentrenamiento si la probabilidad que da el modelo o una de sus 10 variables más importantes está en rojo dos períodos seguidos. Un primer rojo pide revisar la variable.
+
+Las 10 variables más importantes según el XGBoost son `carga_cuota_ingreso_dc`, `ratio_ingreso_declarado_vs_dc`, `puntaje_datacredito`, `tipo_laboral`, `promedio_ingresos_datacredito`, `consultas_altas`, `total_otros_prestamos`, `plazo_meses`, `tipo_credito` y `huella_consulta`.
+
+**Dos escenarios, que no se mezclan:**
+
+| Escenario | Qué son | Qué responde |
+|---|---|---|
+| **Créditos reales** | Los 2 153 créditos de test por período, tratados como si fueran producción | ¿Cambiaron de verdad los clientes? |
+| **Simulación** | Lotes alterados a propósito con intensidad creciente y de forma reproducible | ¿El monitor detecta un cambio cuando lo hay? |
+
+**Qué se encontró en los créditos reales (julio de 2025 a abril de 2026):**
+
+- Hay drift persistente: `plazo_meses`, `promedio_ingresos_datacredito` y `total_otros_prestamos` están en rojo en 7 de los 8 períodos, y la regla sugiere evaluar un reentrenamiento desde agosto de 2025.
+- Cambió la mezcla de plazos: los créditos a 12 meses pasaron del 28 % al 11 %, y los de 6 meses, del 28 % al 44 %.
+- El modelo rechaza más: del 6.0 % en entrenamiento a entre 8.3 % y 15.7 % por período.
+- No se sabe aún si estos cambios son de la población o de cómo se registran los datos. Hay que revisarlo con el negocio antes de reentrenar.
+
+**Qué tan confiable es el monitor.** En la simulación, las variables alteradas suben con la intensidad (`puntaje_datacredito` pasa de PSI 0.02 a 1.49) y las no alteradas, como `edad_cliente`, siguen en verde. Al comparar subconjuntos aleatorios de entrenamiento contra el resto, donde no hay cambio real, no apareció ningún rojo, ni siquiera con 127 créditos.
+
+**Límites.** Drift no significa que el modelo haya empeorado: para saberlo hay que conocer quién pagó, y con 69 malos pagadores en test no se puede medir el AUC por período. Además, como el modelo ya es débil, reentrenarlo podría no ser suficiente.
+
 ## Próximos pasos
 
 1. **Confirmar con el negocio qué es `puntaje`** y en qué momento se calcula. Si de verdad existe antes de aprobar el crédito, se podría volver a incluir y el problema estaría prácticamente resuelto.
@@ -71,9 +99,12 @@ mlops_pipeline/
 │   ├── Cargar_datos.ipynb              # lectura de Base_de_datos.xlsx
 │   ├── comprension_eda.ipynb           # análisis exploratorio
 │   ├── ft_engineering.py               # limpieza, variables, train/test, ColumnTransformer
-│   └── model_training_evaluation.py    # comparación, ajuste y evaluación con PyCaret
+│   ├── model_training_evaluation.py    # comparación, ajuste y evaluación con PyCaret
+│   ├── model_monitoring.py             # pronósticos por período y métricas de data drift
+│   └── app_monitoreo.py                # tablero de monitoreo en Streamlit
 ├── reportes/                           # gráficos y tablas de resultados
-└── models/                             # mejor modelo: preprocesador + modelo + punto de corte (.joblib)
+├── models/                             # mejor modelo: preprocesador + modelo + punto de corte (.joblib)
+└── monitoreo/                          # resultados agregados del monitoreo (predicciones.db queda fuera de git)
 ```
 
 ```powershell
@@ -81,7 +112,10 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 cd mlops_pipeline\src
-python model_training_evaluation.py
+python model_training_evaluation.py   # entrena y guarda el modelo
+python model_monitoring.py            # calcula el monitoreo; en producción se programa con la periodicidad definida
+cd ..\..
+streamlit run mlops_pipeline\src\app_monitoreo.py
 ```
 
 Requiere Python 3.9–3.11 (límite de PyCaret 3.3). `Base_de_datos.xlsx` debe estar en la raíz del proyecto o en una carpeta superior.

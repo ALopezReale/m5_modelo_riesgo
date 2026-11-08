@@ -2,3 +2,4 @@
 __pycache__/
 logs.log
 catboost_info/
+mlops_pipeline/monitoreo/predicciones.db
