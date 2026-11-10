@@ -1,5 +1,20 @@
+# Base de datos (para no exponerla públicamente)
+mlops_pipeline/Base_de_datos.xlsx
+# Entorno y cachés de Python
 .venv/
 __pycache__/
+.ipynb_checkpoints/
+
+# Logs y archivos temporales de librerías
 logs.log
 catboost_info/
+
+# Datos individuales del monitoreo: solo se suben los resultados agregados
 mlops_pipeline/monitoreo/predicciones.db
+
+# Variables de entorno (python-dotenv) y archivos que crean el editor y el sistema
+.env
+.vscode/
+~$*
+Thumbs.db
+.DS_Store

@@ -1,0 +1,33 @@
+{
+  "generado": "2026-11-08T15:47:42",
+  "periodicidad": "M",
+  "min_creditos_ventana": 100,
+  "tam_muestra": 500,
+  "psi_amarillo": 0.1,
+  "psi_rojo": 0.25,
+  "salto_abrupto": 0.15,
+  "umbral_modelo": 0.8767392444610596,
+  "variable_proba": "probabilidad_pago",
+  "variables_importantes": {
+    "carga_cuota_ingreso_dc": 0.07123896479606628,
+    "ratio_ingreso_declarado_vs_dc": 0.06700395047664642,
+    "puntaje_datacredito": 0.05844290181994438,
+    "tipo_laboral": 0.05713292211294174,
+    "promedio_ingresos_datacredito": 0.04913646727800369,
+    "consultas_altas": 0.047660306096076965,
+    "total_otros_prestamos": 0.045298073440790176,
+    "plazo_meses": 0.045151617377996445,
+    "tipo_credito": 0.040112584829330444,
+    "huella_consulta": 0.03886109218001366
+  },
+  "referencia": {
+    "n": 8610,
+    "desde": "2024-11-26",
+    "hasta": "2025-07-12",
+    "tasa_rechazo": 0.06004645760743322,
+    "proba_media": 0.9496681690216064,
+    "tasa_pago": 0.948664343786295
+  },
+  "auc_test": 0.6713329995271079,
+  "no_paga_test": 69
+}
