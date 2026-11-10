@@ -1,5 +1,3 @@
-# Base de datos (para no exponerla públicamente)
-mlops_pipeline/Base_de_datos.xlsx
 # Entorno y cachés de Python
 .venv/
 __pycache__/
