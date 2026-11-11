@@ -1,0 +1,7 @@
+# Se excluye todo y solo se permite lo que la imagen usa.
+# Así no entran por accidente el .venv, el historial de git ni datos de clientes.
+*
+!requirements-api.txt
+!mlops_pipeline/src/ft_engineering.py
+!mlops_pipeline/src/model_deploy.py
+!mlops_pipeline/models/mejor_modelo.joblib

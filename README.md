@@ -83,28 +83,99 @@ Las 10 variables más importantes según el XGBoost son `carga_cuota_ingreso_dc`
 
 **Límites.** Drift no significa que el modelo haya empeorado: para saberlo hay que conocer quién pagó, y con 69 malos pagadores en test no se puede medir el AUC por período. Además, como el modelo ya es débil, reentrenarlo podría no ser suficiente.
 
-## Próximos pasos
+## API de predicción y Docker
 
-1. **Confirmar con el negocio qué es `puntaje`** y en qué momento se calcula. Si de verdad existe antes de aprobar el crédito, se podría volver a incluir y el problema estaría prácticamente resuelto.
-2. **Definir el costo de cada error** (pérdida promedio por mal pagador frente a ganancia por buen cliente) para fijar el punto de corte óptimo.
-3. **Sumar información** sobre el comportamiento de pago previo del cliente y esperar a que maduren los créditos recientes: algunos todavía no han tenido tiempo de caer en mora.
+El modelo se publica como un servicio web: otro sistema le envía los datos de uno o varios créditos y recibe la predicción. Todo va dentro de una imagen Docker, así que para usarlo no hace falta instalar Python ni las librerías.
+
+**Qué hace** ([model_deploy.py](mlops_pipeline/src/model_deploy.py), con FastAPI):
+
+1. Al arrancar carga `mejor_modelo.joblib` (preprocesador + XGBoost + punto de corte), el archivo que guarda `model_training_evaluation.py`.
+2. Recibe los datos crudos de los créditos, en JSON o CSV, hasta 10 000 por solicitud.
+3. Les aplica la misma limpieza y las mismas variables del entrenamiento (`limpiar` y `crear_atributos` de [ft_engineering.py](mlops_pipeline/src/ft_engineering.py)).
+4. Devuelve, por cada crédito, la probabilidad de pagar a tiempo y la predicción según el punto de corte.
+
+| Ruta | Para qué sirve |
+|---|---|
+| `GET /health` | Comprobar que el servicio está activo y qué modelo cargó |
+| `POST /predict` | Predicción por lotes, en JSON o CSV |
+| `GET /docs` | Documentación interactiva para probar la API desde el navegador |
+
+**Qué datos recibe.** Las mismas columnas de la base de datos, sin `Pago_atiempo`:
+
+- **Obligatorias (14):** `tipo_credito`, `fecha_prestamo`, `capital_prestado`, `plazo_meses`, `edad_cliente`, `tipo_laboral`, `salario_cliente`, `total_otros_prestamos`, `cuota_pactada`, `cant_creditosvigentes`, `huella_consulta`, `creditos_sectorFinanciero`, `creditos_sectorCooperativo` y `creditos_sectorReal`.
+- **Opcionales (5):** `puntaje_datacredito`, `saldo_mora`, `saldo_total`, `promedio_ingresos_datacredito` y `tendencia_ingresos`. También faltan en algunos créditos de entrenamiento, y el modelo sabe tratarlas.
+- **Se aceptan, pero se ignoran:** `puntaje` (fuga de información), `saldo_principal`, `saldo_mora_codeudor` y `Pago_atiempo`. Así se puede enviar un archivo con el mismo formato de la base.
+- **Cualquier otra columna se rechaza.** Un nombre mal escrito se convertiría en un dato faltante y cambiaría la predicción sin avisar.
+
+Si algún dato está mal, la API no predice nada y responde qué fila y qué campo hay que corregir.
+
+Ejemplo de solicitud en JSON (en CSV es lo mismo: una fila por crédito y la primera fila con los nombres de las columnas):
+
+```json
+{"registros": [
+  {"tipo_credito": 9, "fecha_prestamo": "2026-01-08 12:22:40", "capital_prestado": 5974028.4,
+   "plazo_meses": 10, "edad_cliente": 36, "tipo_laboral": "Independiente", "salario_cliente": 4036000,
+   "total_otros_prestamos": 829000, "cuota_pactada": 529554, "cant_creditosvigentes": 4,
+   "huella_consulta": 5, "creditos_sectorFinanciero": 3, "creditos_sectorCooperativo": 0,
+   "creditos_sectorReal": 0, "puntaje_datacredito": 740, "saldo_mora": 0, "saldo_total": 18702}
+]}
+```
+
+Respuesta:
+
+```json
+{"modelo": "XGBClassifier", "umbral": 0.877, "total": 1,
+ "predicciones": [{"fila": 0, "probabilidad_pago": 0.9318, "prediccion": 1, "etiqueta": "Paga a tiempo"}]}
+```
+
+`prediccion` vale 1 si la probabilidad de pago llega al punto de corte y 0 si no. Como el modelo todavía es débil, un 0 (*"Riesgo de no pago: revisar"*) es una alerta para que un analista revise la solicitud, no un rechazo automático.
+
+**Construir y ejecutar la imagen.** Con Docker Desktop abierto, desde la carpeta raíz del proyecto (donde está el [Dockerfile](Dockerfile)):
+
+```powershell
+docker build -t modelo-riesgo-api:1.0 .
+docker run -d --name riesgo-api -p 8000:8000 modelo-riesgo-api:1.0
+```
+
+Después se abre http://localhost:8000/docs, se elige `POST /predict` y *Try it out*. También se puede llamar desde PowerShell:
+
+```powershell
+Invoke-RestMethod -Uri http://localhost:8000/predict -Method Post -ContentType "text/csv" -InFile creditos.csv
+```
+
+Para detener el servicio: `docker rm -f riesgo-api`.
+
+**Qué contiene la imagen.** Python 3.11.9 (la misma versión del entrenamiento), las librerías de [requirements-api.txt](requirements-api.txt), `ft_engineering.py`, `model_deploy.py` y `mejor_modelo.joblib`. El [.dockerignore](.dockerignore) deja fuera todo lo demás (entorno virtual, historial de git y datos de clientes). El servicio corre con un usuario sin permisos de administrador, y Docker comprueba cada 30 segundos que siga respondiendo.
+
+- **Por qué un `requirements-api.txt` aparte.** `requirements.txt` instala todo el proyecto (PyCaret, Jupyter, Streamlit), pero la API solo necesita lo que se usa para predecir. Así la imagen pesa mucho menos y se construye más rápido.
+- **Versiones fijas.** `requirements-api.txt` fija numpy, pandas, scikit-learn y xgboost en las versiones del entrenamiento. Con otras, el modelo podría no cargar o dar probabilidades distintas sin avisar.
+- **Si se reentrena el modelo**, hay que volver a construir la imagen para que incluya el nuevo `mejor_modelo.joblib`.
+
+**Comprobación.** Al enviar a la API en Docker los 2 153 créditos de test, reproduce exactamente la evaluación: AUC 0.67, 19 de 69 malos pagadores detectados y 231 clientes buenos rechazados.
 
 ---
 
 ## Estructura y ejecución
 
 ```
-mlops_pipeline/
-├── src/
-│   ├── Cargar_datos.ipynb              # lectura de Base_de_datos.xlsx
-│   ├── comprension_eda.ipynb           # análisis exploratorio
-│   ├── ft_engineering.py               # limpieza, variables, train/test, ColumnTransformer
-│   ├── model_training_evaluation.py    # comparación, ajuste y evaluación con PyCaret
-│   ├── model_monitoring.py             # pronósticos por período y métricas de data drift
-│   └── app_monitoreo.py                # tablero de monitoreo en Streamlit
-├── reportes/                           # gráficos y tablas de resultados
-├── models/                             # mejor modelo: preprocesador + modelo + punto de corte (.joblib)
-└── monitoreo/                          # resultados agregados del monitoreo (predicciones.db queda fuera de git)
+├── mlops_pipeline/
+│   ├── src/
+│   │   ├── Cargar_datos.ipynb              # lectura de Base_de_datos.xlsx
+│   │   ├── comprension_eda.ipynb           # análisis exploratorio
+│   │   ├── ft_engineering.py               # limpieza, variables, train/test, ColumnTransformer
+│   │   ├── model_training_evaluation.py    # comparación, ajuste y evaluación con PyCaret
+│   │   ├── model_deploy.py                 # API de predicción por lotes (FastAPI)
+│   │   ├── model_monitoring.py             # pronósticos por período y métricas de data drift
+│   │   └── app_monitoreo.py                # tablero de monitoreo en Streamlit
+│   ├── reportes/                           # gráficos y tablas de resultados
+│   ├── models/                             # mejor modelo: preprocesador + modelo + punto de corte (.joblib)
+│   └── monitoreo/                          # resultados agregados del monitoreo (predicciones.db queda fuera de git)
+├── Base_de_datos.xlsx                      # datos de los 10 763 créditos
+├── Dockerfile                              # imagen de la API
+├── .dockerignore                           # qué archivos entran a la imagen
+├── requirements.txt                        # dependencias de todo el proyecto
+├── requirements-api.txt                    # solo las que necesita la imagen de la API
+└── README.md
 ```
 
 ```powershell
@@ -114,8 +185,9 @@ pip install -r requirements.txt
 cd mlops_pipeline\src
 python model_training_evaluation.py   # entrena y guarda el modelo
 python model_monitoring.py            # calcula el monitoreo; en producción se programa con la periodicidad definida
+python model_deploy.py                # API sin Docker, en http://localhost:8000/docs
 cd ..\..
 streamlit run mlops_pipeline\src\app_monitoreo.py
 ```
 
-Requiere Python 3.9–3.11 (límite de PyCaret 3.3). `Base_de_datos.xlsx` debe estar en la raíz del proyecto o en una carpeta superior.
+Requiere Python 3.9–3.11 (límite de PyCaret 3.3). Los scripts y notebooks buscan `Base_de_datos.xlsx` desde su carpeta hacia arriba, así que encuentran la de la raíz del proyecto sin configurar rutas.

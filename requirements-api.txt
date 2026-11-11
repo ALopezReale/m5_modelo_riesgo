@@ -1,0 +1,13 @@
+# Dependencias de la imagen Docker de la API (model_deploy.py).
+# Solo lo que la API usa: sin PyCaret, Jupyter ni Streamlit, la imagen pesa mucho menos.
+# Numpy, pandas, scikit-learn y xgboost van fijos en las versiones con las que se entrenó:
+# con otras, el .joblib puede no cargar o dar resultados distintos sin avisar.
+numpy==1.26.4
+pandas==2.1.4
+scipy==1.11.4
+scikit-learn==1.4.2
+joblib==1.3.2
+xgboost==3.2.0
+fastapi==0.162.2
+pydantic==2.14.1
+uvicorn==0.54.0
